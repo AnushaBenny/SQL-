@@ -59,14 +59,22 @@ select * from projects.swiggy;
  from projects.swiggy) as a
  where rownumber>=4 and rownumber<=9;
  -------------------------------------------------------------------------
- #Q4: Find the latest order placed by customers
- select * from projects.swiggy
- order by order_date desc 
- limit 4;
+ #Q4: Find the latest order placed by customers.
+ with latest_order as
+(select cust_id, outlet, order_date,
+row_number() over(partition by cust_id order by order_date desc) as latest_ord_dt
+from projects.swiggy) select cust_id, outlet, order_date from latest_order where latest_ord_dt = 1;
+    
  ---------------------------------------------------------------------
  #Q5: Print order_id, partner_code, order_date, comment (No issues in place of null else comment)
  
 select  order_id, partner_code, order_date,ifnull(comments,"No issues") as comments
+from projects.swiggy;
+#or
+    Select order_id, partner_code,order_date,
+(case
+when comments is null then 'No issues'
+else comments end) as comments
 from projects.swiggy;
 ----------------------------------------------------------------------------------
  #Q6: Print outlet wise order count, cumulative order count, total bill_amount, cumulative bill_amount.
@@ -84,19 +92,20 @@ from projects.swiggy;
  
  -----------------------------------------------------------------------------------------------------------
 # Q7: Print cust_id wise, Outlet wise 'total number of orders'
-select cust_id,outlet,count(order_id) as total_number_of_orders
+Select cust_id,
+sum(if(outlet='KFC',1,0)) KFC,
+sum(if(outlet='Dominos',1,0)) Dominos,
+sum(if(outlet='Pizza hut',1,0)) Pizza_hut
 from projects.swiggy
-group by 1,2
-order by 1,2 desc;
+group by 1;
 -----------------------------------------------------------------------------------
-#Q8: Print cust_id wise, Outlet wise 'total sales.
-select *from projects.swiggy;
-
-select cust_id,outlet,sum(bill_amount) as total_sales
+#Q8: Print cust_id wise, Outlet wise 'total sales'.
+Select cust_id,
+sum(if(outlet='KFC',bill_amount,0)) KFC,
+sum(if(outlet='Dominos',bill_amount,0)) Dominos,
+sum(if(outlet='Pizza hut',bill_amount,0)) Pizza_hut
 from projects.swiggy
-group by 1,2
-order by 1,2 desc;
-
+group by 1;
 
 
 
